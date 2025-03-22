@@ -150,79 +150,82 @@ class _CameraScreenState extends State<CameraScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: Stack(
-        children: [
-          // Камера на весь экран
-          _cameraService.controller != null &&
-                  _cameraService.controller!.value.isInitialized
-              ? Positioned.fill(
-                child: CameraPreview(_cameraService.controller!),
-              )
-              : Center(child: CircularProgressIndicator()),
+    return SafeArea(
+      child: Scaffold(
+        body: Stack(
+          children: [
+            // Камера на весь экран
+            _cameraService.controller != null &&
+                    _cameraService.controller!.value.isInitialized
+                ? Positioned.fill(
+                  child: CameraPreview(_cameraService.controller!),
+                )
+                : Center(child: CircularProgressIndicator()),
 
-          // Наложенное изображение с прозрачностью 80%
-          if (_overlayImage != null)
-            Positioned.fill(
-              child: Opacity(
-                opacity: 0.8,
-                child: Image.file(_overlayImage!, fit: BoxFit.cover),
+            // Наложенное изображение с прозрачностью 80%
+            if (_overlayImage != null)
+              Positioned.fill(
+                child: Opacity(
+                  opacity: 0.8,
+                  child: Image.file(_overlayImage!, fit: BoxFit.cover),
+                ),
+              ),
+
+            // Кнопки управления (внизу)
+            Positioned(
+              bottom: 60,
+              left: 0,
+              right: 0,
+              child: Column(
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      FloatingActionButton(
+                        onPressed: _switchCamera,
+                        heroTag: 'switch',
+                        child: Icon(Icons.switch_camera),
+                      ),
+                      FloatingActionButton(
+                        onPressed: _takePicture,
+                        heroTag: 'photo',
+                        child: Icon(Icons.camera),
+                      ),
+                      FloatingActionButton(
+                        onPressed:
+                            _isRecording
+                                ? _stopVideoRecording
+                                : _startVideoRecording,
+                        backgroundColor:
+                            _isRecording ? Colors.red : Colors.blue,
+                        heroTag: 'video',
+                        child: Icon(_isRecording ? Icons.stop : Icons.videocam),
+                      ),
+                      FloatingActionButton(
+                        onPressed: _pickOverlayImage,
+                        heroTag: 'overlay',
+                        child: Icon(Icons.image),
+                      ),
+                    ],
+                  ),
+                  SizedBox(height: 10), // Отступ перед текстом
+                  // Последняя фиксация (путь к файлу)
+                  if (_lastCapturedPath != null)
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child: Text(
+                        'Последний файл: $_lastCapturedPath',
+                        style: TextStyle(color: Colors.white, fontSize: 14),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                ],
               ),
             ),
-
-          // Кнопки управления (внизу)
-          Positioned(
-            bottom: 60,
-            left: 0,
-            right: 0,
-            child: Column(
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [
-                    FloatingActionButton(
-                      onPressed: _switchCamera,
-                      heroTag: 'switch',
-                      child: Icon(Icons.switch_camera),
-                    ),
-                    FloatingActionButton(
-                      onPressed: _takePicture,
-                      heroTag: 'photo',
-                      child: Icon(Icons.camera),
-                    ),
-                    FloatingActionButton(
-                      onPressed:
-                          _isRecording
-                              ? _stopVideoRecording
-                              : _startVideoRecording,
-                      backgroundColor: _isRecording ? Colors.red : Colors.blue,
-                      heroTag: 'video',
-                      child: Icon(_isRecording ? Icons.stop : Icons.videocam),
-                    ),
-                    FloatingActionButton(
-                      onPressed: _pickOverlayImage,
-                      heroTag: 'overlay',
-                      child: Icon(Icons.image),
-                    ),
-                  ],
-                ),
-                SizedBox(height: 10), // Отступ перед текстом
-                // Последняя фиксация (путь к файлу)
-                if (_lastCapturedPath != null)
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    child: Text(
-                      'Последний файл: $_lastCapturedPath',
-                      style: TextStyle(color: Colors.white, fontSize: 14),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      textAlign: TextAlign.center,
-                    ),
-                  ),
-              ],
-            ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
