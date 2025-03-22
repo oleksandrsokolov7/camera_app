@@ -23,11 +23,28 @@ class _CameraScreenState extends State<CameraScreen> {
   void initState() {
     super.initState();
     _initCamera();
+    _setSystemUI();
   }
 
   Future<void> _initCamera() async {
     await _cameraService.initCamera();
     setState(() {});
+  }
+
+  void _setSystemUI() {
+    // Скрываем системные кнопки (статусная строка и навигационные кнопки)
+    SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
+
+    // Если нужно, можно настроить стиль системных кнопок (например, прозрачные кнопки):
+    SystemChrome.setSystemUIOverlayStyle(
+      SystemUiOverlayStyle(
+        statusBarColor: Colors.transparent, // Статусная строка прозрачная
+        systemNavigationBarColor:
+            Colors.transparent, // Навигационные кнопки прозрачные
+        systemNavigationBarIconBrightness:
+            Brightness.dark, // Цвет иконок на навигационной панели
+      ),
+    );
   }
 
   Future<void> _pickOverlayImage() async {
