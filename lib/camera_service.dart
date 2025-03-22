@@ -6,6 +6,7 @@ class CameraService {
   CameraController? _controller;
   late List<CameraDescription> _cameras;
   bool _isRecording = false;
+  int _currentCameraIndex = 0;
 
   CameraController? get controller => _controller;
   bool get isRecording => _isRecording;
@@ -17,7 +18,19 @@ class CameraService {
       throw Exception("Камеры не найдены");
     }
 
-    _controller = CameraController(_cameras.first, ResolutionPreset.high);
+    // Выбираем переднюю камеру по умолчанию
+    _currentCameraIndex = _cameras.indexWhere(
+      (camera) => camera.lensDirection == CameraLensDirection.front,
+    );
+    if (_currentCameraIndex == -1) {
+      _currentCameraIndex =
+          0; // Если передней камеры нет, берем первую доступную
+    }
+
+    _controller = CameraController(
+      _cameras[_currentCameraIndex],
+      ResolutionPreset.high,
+    );
 
     try {
       await _controller?.initialize();
@@ -29,11 +42,13 @@ class CameraService {
   Future<void> switchCamera() async {
     if (_cameras.length < 2 || _controller == null) return;
 
-    final currentIndex = _cameras.indexOf(_controller!.description);
-    final newIndex = (currentIndex + 1) % _cameras.length;
+    _currentCameraIndex = (_currentCameraIndex + 1) % _cameras.length;
 
     await _controller?.dispose();
-    _controller = CameraController(_cameras[newIndex], ResolutionPreset.high);
+    _controller = CameraController(
+      _cameras[_currentCameraIndex],
+      ResolutionPreset.high,
+    );
 
     try {
       await _controller?.initialize();

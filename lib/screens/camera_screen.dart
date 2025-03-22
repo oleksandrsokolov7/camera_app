@@ -1,5 +1,4 @@
 import 'dart:io';
-
 import 'package:camera/camera.dart';
 import 'package:camera_app/camera_service.dart';
 import 'package:flutter/material.dart';
@@ -14,13 +13,11 @@ class CameraScreen extends StatefulWidget {
 }
 
 class _CameraScreenState extends State<CameraScreen> {
-  static const platform = MethodChannel(
-    'com.example.camera_app/mediastore',
-  ); // Канал для связи с платформой
+  static const platform = MethodChannel('com.example.camera_app/mediastore');
   final CameraService _cameraService = CameraService();
   File? _overlayImage;
   bool _isRecording = false;
-  String? _lastCapturedPath; // Храним путь к последнему снятому фото или видео
+  String? _lastCapturedPath;
 
   @override
   void initState() {
@@ -49,7 +46,7 @@ class _CameraScreenState extends State<CameraScreen> {
       setState(() {
         _lastCapturedPath = pictureFile;
       });
-      _showSaveDialog('photo'); // Показываем диалог для сохранения фото
+      _showSaveDialog('photo');
     }
   }
 
@@ -66,11 +63,10 @@ class _CameraScreenState extends State<CameraScreen> {
       setState(() {
         _lastCapturedPath = videoFile;
       });
-      _showSaveDialog('video'); // Показываем диалог для сохранения видео
+      _showSaveDialog('video');
     }
   }
 
-  // Функция для отображения диалога с вопросом
   Future<void> _showSaveDialog(String type) async {
     final result = await showDialog<bool>(
       context: context,
@@ -85,13 +81,13 @@ class _CameraScreenState extends State<CameraScreen> {
           actions: <Widget>[
             TextButton(
               onPressed: () {
-                Navigator.of(context).pop(false); // Закрываем диалог с отказом
+                Navigator.of(context).pop(false);
               },
               child: Text('Отмена'),
             ),
             TextButton(
               onPressed: () {
-                Navigator.of(context).pop(true); // Закрываем диалог с согласием
+                Navigator.of(context).pop(true);
               },
               child: Text('Сохранить'),
             ),
@@ -100,7 +96,6 @@ class _CameraScreenState extends State<CameraScreen> {
       },
     );
 
-    // Если пользователь подтвердил, сохраняем файл
     if (result == true && _lastCapturedPath != null) {
       _saveToGallery(File(_lastCapturedPath!));
     }
@@ -111,7 +106,7 @@ class _CameraScreenState extends State<CameraScreen> {
       final result = await platform.invokeMethod('saveImage', {
         'imagePath': file.path,
       });
-      print(result); // Сообщение от платформенного кода
+      print(result);
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text('Файл сохранён в галерею')));
@@ -158,53 +153,56 @@ class _CameraScreenState extends State<CameraScreen> {
               ),
             ),
 
-          // Кнопки управления
+          // Кнопки управления (внизу)
           Positioned(
-            bottom: 50,
-            left: 20,
-            child: FloatingActionButton(
-              onPressed: _switchCamera,
-              child: Icon(Icons.switch_camera),
-            ),
-          ),
-
-          Positioned(
-            bottom: 50,
-            right: 20,
-            child: FloatingActionButton(
-              onPressed: _takePicture,
-              child: Icon(Icons.camera),
-            ),
-          ),
-
-          // Кнопка для начала записи видео
-          Positioned(
-            bottom: 120,
-            right: 20,
-            child: FloatingActionButton(
-              onPressed: _startVideoRecording,
-              backgroundColor: Colors.blue,
-              child: Icon(Icons.videocam),
-            ),
-          ),
-
-          // Кнопка для остановки записи видео
-          Positioned(
-            bottom: 120,
-            right: 100,
-            child: FloatingActionButton(
-              onPressed: _stopVideoRecording,
-              backgroundColor: Colors.red,
-              child: Icon(Icons.stop),
-            ),
-          ),
-
-          Positioned(
-            bottom: 120,
-            left: 20,
-            child: FloatingActionButton(
-              onPressed: _pickOverlayImage,
-              child: Icon(Icons.image),
+            bottom: 60,
+            left: 0,
+            right: 0,
+            child: Column(
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    FloatingActionButton(
+                      onPressed: _switchCamera,
+                      heroTag: 'switch',
+                      child: Icon(Icons.switch_camera),
+                    ),
+                    FloatingActionButton(
+                      onPressed: _takePicture,
+                      heroTag: 'photo',
+                      child: Icon(Icons.camera),
+                    ),
+                    FloatingActionButton(
+                      onPressed:
+                          _isRecording
+                              ? _stopVideoRecording
+                              : _startVideoRecording,
+                      backgroundColor: _isRecording ? Colors.red : Colors.blue,
+                      heroTag: 'video',
+                      child: Icon(_isRecording ? Icons.stop : Icons.videocam),
+                    ),
+                    FloatingActionButton(
+                      onPressed: _pickOverlayImage,
+                      heroTag: 'overlay',
+                      child: Icon(Icons.image),
+                    ),
+                  ],
+                ),
+                SizedBox(height: 10), // Отступ перед текстом
+                // Последняя фиксация (путь к файлу)
+                if (_lastCapturedPath != null)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: Text(
+                      'Последний файл: $_lastCapturedPath',
+                      style: TextStyle(color: Colors.white, fontSize: 14),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+              ],
             ),
           ),
         ],
